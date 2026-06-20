@@ -1,0 +1,50 @@
+name: deploy-backend
+on:
+  push:
+    branches: [main]
+    paths: ['src/backend/**', 'charts/backend/**', '.github/workflows/deploy-backend.yml']
+  workflow_dispatch:
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    environment:
+      name: production-backend        # this line creates the first-class GitHub Deployment
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/backend/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/backend:${{ github.sha }}
+
+      - uses: azure/setup-helm@v4
+
+      - name: Fetch kubeconfig from Scaleway
+        env:
+          SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
+          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          SCW_DEFAULT_PROJECT_ID: ${{ secrets.SCW_DEFAULT_PROJECT_ID }}
+          SCW_DEFAULT_REGION: nl-ams
+        run: |
+          curl -s https://raw.githubusercontent.com/scaleway/scaleway-cli/master/scripts/get.sh | sh
+          scw k8s kubeconfig install ${{ secrets.SCW_CLUSTER_ID }}
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install backend ./charts/backend \
+            --set image.repository=ghcr.io/${{ github.repository_owner }}/backend \
+            --set image.tag=${{ github.sha }} \
+            --wait --timeout 3m
