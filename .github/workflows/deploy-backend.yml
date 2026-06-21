@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0          # nbgv needs the FULL history to compute git height
+          fetch-depth: 1          # nbgv needs the FULL history to compute git height
 
       - uses: actions/setup-dotnet@v4
         with:
