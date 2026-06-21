@@ -9,4 +9,4 @@ COPY --from=build /app .
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 # Linux containers are case-sensitive — match the exact assembly name (here: Backend.dll)
-ENTRYPOINT ["dotnet", "Backend.dll"]
+ENTRYPOINT ["dotnet", "Wrong.dll"]
