@@ -1,0 +1,31 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  ci:                                   # one job → a "ci" check that's always present
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect changed components
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            backend: ['src/backend/**',  'src/shared/contracts/**']
+            gateway: ['src/gateway/**',  'src/shared/contracts/**']
+            client:  ['src/client/**',   'src/shared/contracts/**']
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build backend
+        if: steps.changes.outputs.backend == 'true'
+        run: dotnet build src/backend -c Release
+      - name: Build gateway
+        if: steps.changes.outputs.gateway == 'true'
+        run: dotnet build src/gateway -c Release
+      - name: Build client
+        if: steps.changes.outputs.client == 'true'
+        run: dotnet build src/client -c Release
