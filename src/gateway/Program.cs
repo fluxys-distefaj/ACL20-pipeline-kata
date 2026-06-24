@@ -12,7 +12,7 @@ public static class GatewayApp
         var app = builder.Build();
         // ... your existing reverse-proxy mapping ...
 
-        app.MapGet("/api/ping", () => new PingResponse("pong"));   // the contract endpoint
+        app.MapGet("/api/ping", () => new PingResponse("bou"));   // the contract endpoint
         return app;
     }
 }
