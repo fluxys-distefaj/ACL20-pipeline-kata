@@ -29,3 +29,9 @@ jobs:
       - name: Build client
         if: steps.changes.outputs.client == 'true'
         run: dotnet build src/client -c Release
+      - name: Contract test - consumer (client)
+        if: steps.changes.outputs.client == 'true' || steps.changes.outputs.gateway == 'true'
+        run: dotnet test tests/Client.Contract.Tests
+      - name: Contract test - provider (gateway)
+        if: steps.changes.outputs.client == 'true' || steps.changes.outputs.gateway == 'true'
+        run: dotnet test tests/Gateway.Contract.Tests
